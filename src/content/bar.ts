@@ -14,12 +14,15 @@ ytd-mini-guide-renderer { top: ${BAR_HEIGHT * 2}px !important; }
 
 const FACEBOOK_CSS = `
 div[role="banner"] { top: ${BAR_HEIGHT}px !important; }
+div[role="navigation"] { top: ${BAR_HEIGHT}px !important; }
 div[role="main"] { padding-top: ${BAR_HEIGHT}px !important; }
 `;
 
 let barElement: HTMLElement | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let cachedSiteData: SiteData;
+let fixedElementObserver: MutationObserver | null = null;
+let observerDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 function formatCountdown(seconds: number): string {
   if (seconds <= 0) return "0:00";
@@ -85,8 +88,10 @@ function injectSiteCSS(domain: string): void {
     css = YOUTUBE_CSS;
   } else if (domain.includes("facebook")) {
     css = FACEBOOK_CSS;
-    // Fallback: scan body direct children for fixed headers not covered by role selectors
-    shiftFixedBodyChildren();
+    // Deep-scan all elements for fixed/sticky headers not covered by CSS selectors
+    shiftFixedTopElements();
+    // Watch for dynamically added elements (Facebook is an SPA)
+    startFixedElementObserver();
   }
 
   if (!css) return;
@@ -97,20 +102,71 @@ function injectSiteCSS(domain: string): void {
   document.head.appendChild(style);
 }
 
-function shiftFixedBodyChildren(): void {
-  const children = document.body.children;
-  for (let i = 0; i < children.length; i++) {
-    const el = children[i] as HTMLElement;
-    if (el.id?.startsWith("antiprocra-")) continue;
-    const computed = getComputedStyle(el);
-    if (computed.position === "fixed" && (computed.top === "0px" || computed.top === "0")) {
-      el.style.setProperty("top", `${BAR_HEIGHT}px`, "important");
-      el.dataset.antiprocraPushed = "true";
+function isFixedAtTop(el: HTMLElement): boolean {
+  if (el.id?.startsWith("antiprocra-")) return false;
+  if (el.dataset.antiprocraPushed) return false;
+  const computed = getComputedStyle(el);
+  if (computed.position !== "fixed" && computed.position !== "sticky") return false;
+  const top = parseFloat(computed.top);
+  return !isNaN(top) && top >= 0 && top < BAR_HEIGHT;
+}
+
+function pushElementDown(el: HTMLElement): void {
+  el.style.setProperty("top", `${BAR_HEIGHT}px`, "important");
+  el.dataset.antiprocraPushed = "true";
+}
+
+function shiftFixedTopElements(root?: Element): void {
+  const container = root ?? document.body;
+  const elements = container.querySelectorAll("*");
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i] as HTMLElement;
+    if (isFixedAtTop(el)) {
+      pushElementDown(el);
     }
+  }
+  // Also check the container itself if it's not document.body
+  if (root && root instanceof HTMLElement && isFixedAtTop(root)) {
+    pushElementDown(root);
+  }
+}
+
+function startFixedElementObserver(): void {
+  stopFixedElementObserver();
+
+  fixedElementObserver = new MutationObserver((mutations) => {
+    if (observerDebounceTimer) clearTimeout(observerDebounceTimer);
+    observerDebounceTimer = setTimeout(() => {
+      for (const mutation of mutations) {
+        for (let i = 0; i < mutation.addedNodes.length; i++) {
+          const node = mutation.addedNodes[i];
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            shiftFixedTopElements(node as Element);
+          }
+        }
+      }
+    }, 200);
+  });
+
+  fixedElementObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+}
+
+function stopFixedElementObserver(): void {
+  if (observerDebounceTimer) {
+    clearTimeout(observerDebounceTimer);
+    observerDebounceTimer = null;
+  }
+  if (fixedElementObserver) {
+    fixedElementObserver.disconnect();
+    fixedElementObserver = null;
   }
 }
 
 function removeSiteCSS(): void {
+  stopFixedElementObserver();
   document.getElementById(SITE_CSS_ID)?.remove();
   const pushed = document.querySelectorAll("[data-antiprocra-pushed]");
   pushed.forEach((el) => {
