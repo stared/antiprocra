@@ -2,3 +2,11 @@ node_modules/
 dist/
 .vite/
 *.log
+
+# Claude Code local settings
+.claude/
+
+# Playwright investigation artifacts
+scripts/*.mjs
+scripts/*.html
+scripts/*.png
