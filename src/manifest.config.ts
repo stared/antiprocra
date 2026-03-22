@@ -19,7 +19,7 @@ export default defineManifest({
       ],
       js: ["src/content/index.ts"],
       css: ["src/content/content.css"],
-      run_at: "document_end",
+      run_at: "document_start",
     },
   ],
   icons: {

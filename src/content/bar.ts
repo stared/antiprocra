@@ -30,7 +30,7 @@ function getBarState(remaining: number, total: number): string {
   if (remaining <= 0) return "expired";
   if (remaining < 120) return "critical"; // <2 min
   if (remaining < total / 2) return "warning";
-  return "ok";
+  return "neutral";
 }
 
 function updateBarDisplay(): void {
@@ -81,7 +81,7 @@ export function createBar(domain: string, siteData: SiteData): void {
 
   barElement = document.createElement("div");
   barElement.id = "antiprocra-bar";
-  barElement.setAttribute("data-state", "ok");
+  barElement.setAttribute("data-state", "neutral");
 
   barElement.innerHTML = `
     <span id="antiprocra-bar-time"></span>
@@ -95,9 +95,9 @@ export function createBar(domain: string, siteData: SiteData): void {
   document.body.prepend(barElement);
   document.documentElement.style.setProperty(
     "--antiprocra-bar-height",
-    "28px",
+    "56px",
   );
-  document.body.style.marginTop = "28px";
+  document.body.style.marginTop = "56px";
 
   const btn = document.getElementById("antiprocra-extend-btn");
   if (btn) btn.addEventListener("click", handleExtend);

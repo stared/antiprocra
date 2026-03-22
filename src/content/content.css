@@ -53,13 +53,13 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 28px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 12px;
+  font-size: 16px;
   z-index: 2147483647;
   user-select: none;
   pointer-events: none;
@@ -67,10 +67,10 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* State: OK (green) */
-#antiprocra-bar[data-state="ok"] {
-  background: #1b2e1b;
-  color: #7ec87e;
+/* State: Neutral (default — not green, procrastination is never "good") */
+#antiprocra-bar[data-state="neutral"] {
+  background: #1a1a2e;
+  color: #a0a0b8;
 }
 
 /* State: Warning (yellow) */
@@ -115,8 +115,8 @@
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: inherit;
-  font-size: 11px;
-  padding: 2px 8px;
+  font-size: 13px;
+  padding: 4px 12px;
   border-radius: 3px;
   cursor: pointer;
   pointer-events: auto;

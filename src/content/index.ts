@@ -18,15 +18,35 @@ const currentDomain = (() => {
 })();
 
 if (currentDomain) {
-  void main(currentDomain);
+  // IMMEDIATELY hide the page — runs at document_start before body exists
+  const hideStyle = document.createElement("style");
+  hideStyle.id = "antiprocra-hide";
+  hideStyle.textContent = "body { visibility: hidden !important; }";
+  document.documentElement.appendChild(hideStyle);
+
+  // Wait for body to exist, then show overlay
+  if (document.body) {
+    void main(currentDomain, hideStyle);
+  } else {
+    const observer = new MutationObserver(() => {
+      if (document.body) {
+        observer.disconnect();
+        void main(currentDomain, hideStyle);
+      }
+    });
+    observer.observe(document.documentElement, { childList: true });
+  }
 }
 
-async function main(domain: string): Promise<void> {
+async function main(domain: string, hideStyle: HTMLElement): Promise<void> {
   // Get current data for this site
   const siteData = await getSiteData(domain);
 
-  // Show blur overlay with countdown
+  // Show blur overlay (page still hidden behind it)
   await showOverlay(domain, siteData);
+
+  // Overlay is done — remove the hide style (blur already covered page during countdown)
+  hideStyle.remove();
 
   // Countdown done — start session
   const startMsg: SessionStartMessage = { type: "SESSION_START", domain };
