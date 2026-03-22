@@ -13,9 +13,7 @@ ytd-mini-guide-renderer { top: ${BAR_HEIGHT * 2}px !important; }
 `;
 
 const FACEBOOK_CSS = `
-div[role="banner"] { top: ${BAR_HEIGHT}px !important; }
-div[role="navigation"] { top: ${BAR_HEIGHT}px !important; }
-div[role="main"] { padding-top: ${BAR_HEIGHT}px !important; }
+body { margin-top: ${BAR_HEIGHT}px !important; }
 `;
 
 let barElement: HTMLElement | null = null;
