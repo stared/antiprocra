@@ -120,5 +120,4 @@ export function showLockScreen(remainingSeconds: number): void {
 
   // Remove the bar
   document.getElementById("antiprocra-bar")?.remove();
-  document.body.style.marginTop = "0";
 }

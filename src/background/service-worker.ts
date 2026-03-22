@@ -4,7 +4,6 @@ import {
   IDLE_THRESHOLD_SECONDS,
   ALARM_NAME,
   SESSION_LENGTH_SECONDS,
-  SESSION_EXTEND_SECONDS,
 } from "../shared/config";
 import { getTrackingData, saveTrackingData } from "../shared/storage";
 import type { ExtensionMessage } from "../shared/types";
@@ -105,11 +104,6 @@ async function handleMessage(message: ExtensionMessage): Promise<unknown> {
       site.visits += 1;
       site.currentSessionStart = Date.now();
       site.currentSessionSeconds = SESSION_LENGTH_SECONDS;
-      await saveTrackingData(data);
-      return { ok: true };
-    }
-    case "SESSION_EXTEND": {
-      site.currentSessionSeconds += SESSION_EXTEND_SECONDS;
       await saveTrackingData(data);
       return { ok: true };
     }

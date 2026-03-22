@@ -90,7 +90,7 @@
   user-select: none;
   pointer-events: none;
   transition: background-color 0.5s ease, color 0.5s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 #antiprocra-bar-time {
@@ -111,7 +111,7 @@
 /* Neutral */
 #antiprocra-bar[data-state="neutral"] {
   background: #1a1a2e;
-  color: #a0a0b8;
+  color: #c0c0d0;
 }
 
 /* Warning (yellow) */
@@ -139,8 +139,7 @@
 }
 
 /* Bar buttons */
-#antiprocra-lock-btn,
-#antiprocra-extend-btn {
+#antiprocra-lock-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: inherit;
@@ -153,13 +152,8 @@
   white-space: nowrap;
 }
 
-#antiprocra-lock-btn:hover,
-#antiprocra-extend-btn:hover {
+#antiprocra-lock-btn:hover {
   background: rgba(255, 255, 255, 0.2);
-}
-
-#antiprocra-extend-btn {
-  visibility: hidden;
 }
 
 /* --- Lock Screen (farewell) --- */

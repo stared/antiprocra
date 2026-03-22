@@ -10,15 +10,10 @@ export interface TrackingData {
   sites: Record<string, SiteData>;
 }
 
-export type MessageType = "SESSION_START" | "SESSION_EXTEND" | "GET_DATA";
+export type MessageType = "SESSION_START" | "GET_DATA";
 
 export interface SessionStartMessage {
   type: "SESSION_START";
-  domain: string;
-}
-
-export interface SessionExtendMessage {
-  type: "SESSION_EXTEND";
   domain: string;
 }
 
@@ -29,5 +24,4 @@ export interface GetDataMessage {
 
 export type ExtensionMessage =
   | SessionStartMessage
-  | SessionExtendMessage
   | GetDataMessage;

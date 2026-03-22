@@ -1,10 +1,24 @@
-import { SESSION_EXTEND_SECONDS } from "../shared/config";
-import type { SiteData, SessionExtendMessage } from "../shared/types";
+import type { SiteData } from "../shared/types";
 import { showLockScreen } from "./overlay";
+
+const BAR_HEIGHT = 56;
+const SITE_CSS_ID = "antiprocra-site-css";
+
+const YOUTUBE_CSS = `
+#masthead-container { top: ${BAR_HEIGHT}px !important; transform: none !important; }
+#frosted-glass { top: ${BAR_HEIGHT}px !important; }
+tp-yt-app-drawer#guide { top: ${BAR_HEIGHT * 2}px !important; }
+ytd-mini-guide-renderer { top: ${BAR_HEIGHT * 2}px !important; }
+#page-manager { margin-top: ${BAR_HEIGHT * 2}px !important; }
+`;
+
+const FACEBOOK_CSS = `
+div[role="banner"] { top: ${BAR_HEIGHT}px !important; }
+div[role="main"] { padding-top: ${BAR_HEIGHT}px !important; }
+`;
 
 let barElement: HTMLElement | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
-let cachedDomain: string;
 let cachedSiteData: SiteData;
 
 function formatCountdown(seconds: number): string {
@@ -44,8 +58,6 @@ function updateBarDisplay(): void {
 
   const timeSpan = barElement.querySelector("#antiprocra-bar-time");
   const statsSpan = barElement.querySelector("#antiprocra-bar-stats");
-  const extendBtn = barElement.querySelector("#antiprocra-extend-btn") as HTMLElement | null;
-
   if (timeSpan) {
     timeSpan.textContent =
       state === "expired"
@@ -56,30 +68,58 @@ function updateBarDisplay(): void {
   if (statsSpan) {
     statsSpan.textContent = `${cachedSiteData.visits} visit${cachedSiteData.visits !== 1 ? "s" : ""} · ${formatTotal(cachedSiteData.totalSeconds)} today`;
   }
-
-  if (extendBtn) {
-    extendBtn.style.visibility = state === "expired" ? "visible" : "hidden";
-  }
-}
-
-function handleExtend(): void {
-  const msg: SessionExtendMessage = {
-    type: "SESSION_EXTEND",
-    domain: cachedDomain,
-  };
-  void chrome.runtime.sendMessage(msg);
-  cachedSiteData.currentSessionSeconds += SESSION_EXTEND_SECONDS;
-  updateBarDisplay();
 }
 
 function handleLock(): void {
   const remaining = getSessionRemaining(cachedSiteData);
   if (timerInterval) clearInterval(timerInterval);
+  removeSiteCSS();
   showLockScreen(remaining);
 }
 
+function injectSiteCSS(domain: string): void {
+  document.getElementById(SITE_CSS_ID)?.remove();
+
+  let css = "";
+  if (domain.includes("youtube")) {
+    css = YOUTUBE_CSS;
+  } else if (domain.includes("facebook")) {
+    css = FACEBOOK_CSS;
+    // Fallback: scan body direct children for fixed headers not covered by role selectors
+    shiftFixedBodyChildren();
+  }
+
+  if (!css) return;
+
+  const style = document.createElement("style");
+  style.id = SITE_CSS_ID;
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+function shiftFixedBodyChildren(): void {
+  const children = document.body.children;
+  for (let i = 0; i < children.length; i++) {
+    const el = children[i] as HTMLElement;
+    if (el.id?.startsWith("antiprocra-")) continue;
+    const computed = getComputedStyle(el);
+    if (computed.position === "fixed" && (computed.top === "0px" || computed.top === "0")) {
+      el.style.setProperty("top", `${BAR_HEIGHT}px`, "important");
+      el.dataset.antiprocraPushed = "true";
+    }
+  }
+}
+
+function removeSiteCSS(): void {
+  document.getElementById(SITE_CSS_ID)?.remove();
+  const pushed = document.querySelectorAll("[data-antiprocra-pushed]");
+  pushed.forEach((el) => {
+    (el as HTMLElement).style.removeProperty("top");
+    delete (el as HTMLElement).dataset.antiprocraPushed;
+  });
+}
+
 export function createBar(domain: string, siteData: SiteData): void {
-  cachedDomain = domain;
   cachedSiteData = siteData;
 
   barElement = document.createElement("div");
@@ -92,20 +132,12 @@ export function createBar(domain: string, siteData: SiteData): void {
     <span id="antiprocra-bar-stats"></span>
     <span id="antiprocra-bar-buttons">
       <button id="antiprocra-lock-btn">Lock now 🌱</button>
-      <button id="antiprocra-extend-btn">Continue (+5 min)</button>
     </span>
   `;
 
   document.body.prepend(barElement);
-  document.documentElement.style.setProperty(
-    "--antiprocra-bar-height",
-    "56px",
-  );
-  document.body.style.marginTop = "56px";
+  injectSiteCSS(domain);
 
-  barElement
-    .querySelector("#antiprocra-extend-btn")
-    ?.addEventListener("click", handleExtend);
   barElement
     .querySelector("#antiprocra-lock-btn")
     ?.addEventListener("click", handleLock);

@@ -1,6 +1,5 @@
 export const TRACKED_DOMAINS = ["facebook.com", "youtube.com"] as const;
 export const SESSION_LENGTH_SECONDS = 10 * 60; // 10 minutes
-export const SESSION_EXTEND_SECONDS = 5 * 60; // 5 minutes
 export const DAY_START_HOUR = 5; // 5 AM
 export const TICK_INTERVAL_SECONDS = 30;
 export const IDLE_THRESHOLD_SECONDS = 120; // 2 minutes
