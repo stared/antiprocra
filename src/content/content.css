@@ -1,0 +1,128 @@
+/* --- Overlay (blur + countdown) --- */
+
+#antiprocra-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: opacity 0.4s ease-out;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+#antiprocra-overlay.antiprocra-fade-out {
+  opacity: 0;
+}
+
+#antiprocra-overlay-content {
+  text-align: center;
+  color: #e0e0e0;
+  max-width: 480px;
+  padding: 32px;
+}
+
+#antiprocra-overlay-stats {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+#antiprocra-overlay-stats strong {
+  color: #ff9f43;
+}
+
+#antiprocra-overlay-countdown {
+  font-size: 14px;
+  color: #888;
+}
+
+#antiprocra-countdown-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e0e0e0;
+}
+
+/* --- Top bar --- */
+
+#antiprocra-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  z-index: 2147483647;
+  user-select: none;
+  pointer-events: none;
+  transition: background-color 0.5s ease, color 0.5s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* State: OK (green) */
+#antiprocra-bar[data-state="ok"] {
+  background: #1b2e1b;
+  color: #7ec87e;
+}
+
+/* State: Warning (yellow) */
+#antiprocra-bar[data-state="warning"] {
+  background: #2e2a1b;
+  color: #d4a843;
+}
+
+/* State: Critical (red, <2min) */
+#antiprocra-bar[data-state="critical"] {
+  background: #2e1b1b;
+  color: #d45050;
+}
+
+/* State: Expired (pulsing red) */
+#antiprocra-bar[data-state="expired"] {
+  background: #3a1111;
+  color: #ff5555;
+  animation: antiprocra-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes antiprocra-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.antiprocra-sep {
+  opacity: 0.4;
+}
+
+/* Bypass button */
+#antiprocra-bar-btn {
+  display: none;
+}
+
+#antiprocra-bar-btn.antiprocra-visible {
+  display: inline;
+  pointer-events: auto;
+}
+
+#antiprocra-extend-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: inherit;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  font-family: inherit;
+}
+
+#antiprocra-extend-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
