@@ -1,5 +1,6 @@
 import { SESSION_EXTEND_SECONDS } from "../shared/config";
 import type { SiteData, SessionExtendMessage } from "../shared/types";
+import { showLockScreen } from "./overlay";
 
 let barElement: HTMLElement | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -28,7 +29,7 @@ function getSessionRemaining(site: SiteData): number {
 
 function getBarState(remaining: number, total: number): string {
   if (remaining <= 0) return "expired";
-  if (remaining < 120) return "critical"; // <2 min
+  if (remaining < 120) return "critical";
   if (remaining < total / 2) return "warning";
   return "neutral";
 }
@@ -43,25 +44,21 @@ function updateBarDisplay(): void {
 
   const timeSpan = barElement.querySelector("#antiprocra-bar-time");
   const statsSpan = barElement.querySelector("#antiprocra-bar-stats");
-  const btnContainer = barElement.querySelector("#antiprocra-bar-btn");
+  const extendBtn = barElement.querySelector("#antiprocra-extend-btn") as HTMLElement | null;
 
   if (timeSpan) {
     timeSpan.textContent =
       state === "expired"
         ? "Time's up!"
-        : `Session: ${formatCountdown(remaining)} remaining`;
+        : `Session: ${formatCountdown(remaining)}`;
   }
 
   if (statsSpan) {
-    statsSpan.textContent = `${cachedSiteData.visits} visit${cachedSiteData.visits !== 1 ? "s" : ""} · ${formatTotal(cachedSiteData.totalSeconds)} total today`;
+    statsSpan.textContent = `${cachedSiteData.visits} visit${cachedSiteData.visits !== 1 ? "s" : ""} · ${formatTotal(cachedSiteData.totalSeconds)} today`;
   }
 
-  if (btnContainer) {
-    if (state === "expired") {
-      btnContainer.classList.add("antiprocra-visible");
-    } else {
-      btnContainer.classList.remove("antiprocra-visible");
-    }
+  if (extendBtn) {
+    extendBtn.style.visibility = state === "expired" ? "visible" : "hidden";
   }
 }
 
@@ -73,6 +70,12 @@ function handleExtend(): void {
   void chrome.runtime.sendMessage(msg);
   cachedSiteData.currentSessionSeconds += SESSION_EXTEND_SECONDS;
   updateBarDisplay();
+}
+
+function handleLock(): void {
+  const remaining = getSessionRemaining(cachedSiteData);
+  if (timerInterval) clearInterval(timerInterval);
+  showLockScreen(remaining);
 }
 
 export function createBar(domain: string, siteData: SiteData): void {
@@ -87,7 +90,8 @@ export function createBar(domain: string, siteData: SiteData): void {
     <span id="antiprocra-bar-time"></span>
     <span class="antiprocra-sep">&middot;</span>
     <span id="antiprocra-bar-stats"></span>
-    <span id="antiprocra-bar-btn">
+    <span id="antiprocra-bar-buttons">
+      <button id="antiprocra-lock-btn">Lock now 🌱</button>
       <button id="antiprocra-extend-btn">Continue (+5 min)</button>
     </span>
   `;
@@ -99,12 +103,15 @@ export function createBar(domain: string, siteData: SiteData): void {
   );
   document.body.style.marginTop = "56px";
 
-  const btn = document.getElementById("antiprocra-extend-btn");
-  if (btn) btn.addEventListener("click", handleExtend);
+  barElement
+    .querySelector("#antiprocra-extend-btn")
+    ?.addEventListener("click", handleExtend);
+  barElement
+    .querySelector("#antiprocra-lock-btn")
+    ?.addEventListener("click", handleLock);
 
   updateBarDisplay();
 
-  // Update every second for smooth countdown
   timerInterval = setInterval(updateBarDisplay, 1000);
 }
 

@@ -4,10 +4,9 @@ import type {
   SessionStartMessage,
   GetDataMessage,
 } from "../shared/types";
-import { showOverlay } from "./overlay";
+import { createOverlay } from "./overlay";
 import { createBar, updateSiteData, ensureBarExists } from "./bar";
 
-// Detect which tracked domain we're on
 const currentDomain = (() => {
   const hostname = location.hostname;
   return (
@@ -24,7 +23,6 @@ if (currentDomain) {
   hideStyle.textContent = "body { visibility: hidden !important; }";
   document.documentElement.appendChild(hideStyle);
 
-  // Wait for body to exist, then show overlay
   if (document.body) {
     void main(currentDomain, hideStyle);
   } else {
@@ -38,28 +36,36 @@ if (currentDomain) {
   }
 }
 
+function isContextValid(): boolean {
+  return chrome.runtime?.id !== undefined;
+}
+
 async function main(domain: string, hideStyle: HTMLElement): Promise<void> {
-  // Get current data for this site
-  const siteData = await getSiteData(domain);
+  // 1. Show overlay IMMEDIATELY — no waiting for background data
+  const overlay = createOverlay(domain);
+  document.body.appendChild(overlay.element);
+  hideStyle.remove(); // overlay covers the page now, no need for visibility:hidden
 
-  // Show blur overlay (page still hidden behind it)
-  await showOverlay(domain, siteData);
+  // 2. Fetch stats in the background, update overlay when ready
+  if (isContextValid()) {
+    const siteData = await getSiteData(domain);
+    overlay.updateStats(siteData);
+  }
 
-  // Overlay is done — remove the hide style (blur already covered page during countdown)
-  hideStyle.remove();
+  // 3. Wait for user to click "Open" + countdown
+  await overlay.waitForOpen();
 
-  // Countdown done — start session
+  // 4. Session starts after countdown
+  if (!isContextValid()) return;
+
   const startMsg: SessionStartMessage = { type: "SESSION_START", domain };
   await chrome.runtime.sendMessage(startMsg);
 
-  // Fetch updated data (with new session start)
   const updatedData = await getSiteData(domain);
-
-  // Create the timer bar
   createBar(domain, updatedData);
 
-  // Listen for storage updates from background
   chrome.storage.onChanged.addListener((changes, area) => {
+    if (!isContextValid()) return;
     if (area !== "local" || !changes.trackingData) return;
     const newData = changes.trackingData.newValue as
       | { sites: Record<string, SiteData> }
@@ -69,8 +75,11 @@ async function main(domain: string, hideStyle: HTMLElement): Promise<void> {
     }
   });
 
-  // Periodic safety check: re-inject bar if removed by site JS
-  setInterval(() => {
+  const barCheckInterval = setInterval(() => {
+    if (!isContextValid()) {
+      clearInterval(barCheckInterval);
+      return;
+    }
     void getSiteData(domain).then((data) => {
       ensureBarExists(domain, data);
     });
@@ -78,14 +87,12 @@ async function main(domain: string, hideStyle: HTMLElement): Promise<void> {
 }
 
 async function getSiteData(domain: string): Promise<SiteData> {
+  if (!isContextValid()) {
+    return { totalSeconds: 0, visits: 0, currentSessionStart: 0, currentSessionSeconds: 0 };
+  }
   const msg: GetDataMessage = { type: "GET_DATA", domain };
   const response = (await chrome.runtime.sendMessage(msg)) as SiteData | null;
   return (
-    response ?? {
-      totalSeconds: 0,
-      visits: 0,
-      currentSessionStart: 0,
-      currentSessionSeconds: 0,
-    }
+    response ?? { totalSeconds: 0, visits: 0, currentSessionStart: 0, currentSessionSeconds: 0 }
   );
 }
