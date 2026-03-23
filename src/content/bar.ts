@@ -57,17 +57,15 @@ function updateBarDisplay(): void {
   const remaining = getSessionRemaining(cachedSiteData);
   const state = getBarState(remaining, cachedSiteData.currentSessionSeconds);
 
-  if (state === "expired") {
-    handleLock();
-    return;
-  }
-
   barElement.setAttribute("data-state", state);
 
   const timeSpan = barElement.querySelector("#antiprocra-bar-time");
   const statsSpan = barElement.querySelector("#antiprocra-bar-stats");
   if (timeSpan) {
-    timeSpan.textContent = `Session: ${formatCountdown(remaining)}`;
+    timeSpan.textContent =
+      state === "expired"
+        ? "Time's up!"
+        : `Session: ${formatCountdown(remaining)}`;
   }
 
   if (statsSpan) {

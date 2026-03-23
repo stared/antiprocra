@@ -103,6 +103,9 @@ export function createOverlay(domain: string): {
 
 /** Show lock screen — farewell with time saved and a rotating message. */
 export function showLockScreen(remainingSeconds: number): void {
+  // Guard against duplicate lock screens
+  if (document.getElementById("antiprocra-lock")) return;
+
   const message = LOCK_MESSAGES[Math.floor(Math.random() * LOCK_MESSAGES.length)];
   const saved = formatCountdown(remainingSeconds);
 
