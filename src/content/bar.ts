@@ -55,15 +55,17 @@ function updateBarDisplay(): void {
   const remaining = getSessionRemaining(cachedSiteData);
   const state = getBarState(remaining, cachedSiteData.currentSessionSeconds);
 
+  if (state === "expired") {
+    handleLock();
+    return;
+  }
+
   barElement.setAttribute("data-state", state);
 
   const timeSpan = barElement.querySelector("#antiprocra-bar-time");
   const statsSpan = barElement.querySelector("#antiprocra-bar-stats");
   if (timeSpan) {
-    timeSpan.textContent =
-      state === "expired"
-        ? "Time's up!"
-        : `Session: ${formatCountdown(remaining)}`;
+    timeSpan.textContent = `Session: ${formatCountdown(remaining)}`;
   }
 
   if (statsSpan) {
@@ -71,9 +73,16 @@ function updateBarDisplay(): void {
   }
 }
 
+function onVisibilityChange(): void {
+  if (document.visibilityState === "visible") {
+    updateBarDisplay();
+  }
+}
+
 function handleLock(): void {
   const remaining = getSessionRemaining(cachedSiteData);
   if (timerInterval) clearInterval(timerInterval);
+  document.removeEventListener("visibilitychange", onVisibilityChange);
   removeSiteCSS();
   showLockScreen(remaining);
 }
@@ -199,6 +208,9 @@ export function createBar(domain: string, siteData: SiteData): void {
   updateBarDisplay();
 
   timerInterval = setInterval(updateBarDisplay, 1000);
+
+  // Check immediately when tab regains focus (setInterval is throttled in background tabs)
+  document.addEventListener("visibilitychange", onVisibilityChange);
 }
 
 export function updateSiteData(siteData: SiteData): void {
