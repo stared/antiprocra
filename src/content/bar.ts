@@ -32,8 +32,10 @@ function formatCountdown(seconds: number): string {
 function formatTotal(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  const seconds = totalSeconds % 60;
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
 }
 
 function getSessionRemaining(site: SiteData): number {
@@ -190,9 +192,8 @@ export function createBar(domain: string, siteData: SiteData): void {
   barElement.setAttribute("data-state", "neutral");
 
   barElement.innerHTML = `
-    <span id="antiprocra-bar-time"></span>
-    <span class="antiprocra-sep">&middot;</span>
     <span id="antiprocra-bar-stats"></span>
+    <span id="antiprocra-bar-time"></span>
     <span id="antiprocra-bar-buttons">
       <button id="antiprocra-lock-btn">Lock now 🌱</button>
     </span>

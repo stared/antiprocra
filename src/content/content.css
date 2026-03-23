@@ -93,12 +93,14 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-#antiprocra-bar-time {
-  min-width: 14ch;
+#antiprocra-bar-stats {
+  white-space: nowrap;
 }
 
-.antiprocra-sep {
-  opacity: 0.4;
+#antiprocra-bar-time {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 #antiprocra-bar-buttons {
