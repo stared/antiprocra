@@ -107,14 +107,23 @@ export function showLockScreen(remainingSeconds: number): void {
   if (document.getElementById("antiprocra-lock")) return;
 
   const message = LOCK_MESSAGES[Math.floor(Math.random() * LOCK_MESSAGES.length)];
-  const saved = formatCountdown(remainingSeconds);
+
+  let statusHtml: string;
+  let overstayed = false;
+  if (remainingSeconds > 0) {
+    statusHtml = `You saved ${formatCountdown(remainingSeconds)} 🌱`;
+  } else {
+    overstayed = true;
+    const overstay = formatCountdown(Math.abs(remainingSeconds));
+    statusHtml = `You overstayed by ${overstay} 😬`;
+  }
 
   const overlay = document.createElement("div");
   overlay.id = "antiprocra-lock";
 
   overlay.innerHTML = `
     <div id="antiprocra-lock-content">
-      <div id="antiprocra-lock-saved">You saved ${saved} 🌱</div>
+      <div id="antiprocra-lock-saved" ${overstayed ? 'class="antiprocra-overstayed"' : ""}>${statusHtml}</div>
       <div id="antiprocra-lock-message">${message}</div>
     </div>
   `;

@@ -187,6 +187,10 @@
   margin-bottom: 20px;
 }
 
+#antiprocra-lock-saved.antiprocra-overstayed {
+  color: #d45050;
+}
+
 #antiprocra-lock-message {
   font-size: 18px;
   line-height: 1.6;
