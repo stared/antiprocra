@@ -41,7 +41,7 @@ function formatTotal(totalSeconds: number): string {
 function getSessionRemaining(site: SiteData): number {
   if (site.currentSessionStart <= 0) return 0;
   const elapsed = Math.floor((Date.now() - site.currentSessionStart) / 1000);
-  return Math.max(0, site.currentSessionSeconds - elapsed);
+  return site.currentSessionSeconds - elapsed;
 }
 
 function getBarState(remaining: number, total: number): string {
