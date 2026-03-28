@@ -62,10 +62,22 @@ function updateBarDisplay(): void {
   const timeSpan = barElement.querySelector("#antiprocra-bar-time");
   const statsSpan = barElement.querySelector("#antiprocra-bar-stats");
   if (timeSpan) {
-    timeSpan.textContent =
-      state === "expired"
-        ? "Time's up!"
-        : `Session: ${formatCountdown(remaining)}`;
+    if (state === "expired") {
+      const overstay = Math.abs(remaining);
+      timeSpan.textContent = `Overstayed your welcome by ${formatCountdown(overstay)}`;
+    } else {
+      timeSpan.textContent = `Session: ${formatCountdown(remaining)}`;
+    }
+  }
+
+  if (state === "expired") {
+    const overstayMinutes = Math.floor(Math.abs(remaining) / 60);
+    const extraHeight = Math.min(overstayMinutes * 4, 80);
+    barElement.style.height = `${BAR_HEIGHT + extraHeight}px`;
+    barElement.style.fontSize = `${16 + Math.min(overstayMinutes, 10)}px`;
+  } else {
+    barElement.style.height = "";
+    barElement.style.fontSize = "";
   }
 
   if (statsSpan) {
