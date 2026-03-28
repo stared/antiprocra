@@ -7,6 +7,8 @@ function freshSiteData(): SiteData {
     visits: 0,
     currentSessionStart: 0,
     currentSessionSeconds: 0,
+    pausedAt: 0,
+    pausedDuration: 0,
   };
 }
 

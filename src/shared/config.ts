@@ -5,3 +5,5 @@ export const TICK_INTERVAL_SECONDS = 30;
 export const IDLE_THRESHOLD_SECONDS = 120; // 2 minutes
 export const COUNTDOWN_SECONDS = 5;
 export const ALARM_NAME = "antiprocra-tick";
+export const PAUSE_GRACE_SECONDS = 120;
+export const PAUSE_ALARM_PREFIX = "antiprocra-pause-";

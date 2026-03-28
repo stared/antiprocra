@@ -3,6 +3,8 @@ export interface SiteData {
   visits: number;
   currentSessionStart: number; // epoch ms, 0 if no active session
   currentSessionSeconds: number; // total budget for current session
+  pausedAt: number; // epoch ms when paused, 0 if running
+  pausedDuration: number; // cumulative ms spent paused this session
 }
 
 export interface TrackingData {

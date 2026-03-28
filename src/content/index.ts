@@ -88,11 +88,11 @@ async function main(domain: string, hideStyle: HTMLElement): Promise<void> {
 
 async function getSiteData(domain: string): Promise<SiteData> {
   if (!isContextValid()) {
-    return { totalSeconds: 0, visits: 0, currentSessionStart: 0, currentSessionSeconds: 0 };
+    return { totalSeconds: 0, visits: 0, currentSessionStart: 0, currentSessionSeconds: 0, pausedAt: 0, pausedDuration: 0 };
   }
   const msg: GetDataMessage = { type: "GET_DATA", domain };
   const response = (await chrome.runtime.sendMessage(msg)) as SiteData | null;
   return (
-    response ?? { totalSeconds: 0, visits: 0, currentSessionStart: 0, currentSessionSeconds: 0 }
+    response ?? { totalSeconds: 0, visits: 0, currentSessionStart: 0, currentSessionSeconds: 0, pausedAt: 0, pausedDuration: 0 }
   );
 }

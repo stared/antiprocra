@@ -40,7 +40,11 @@ function formatTotal(totalSeconds: number): string {
 
 function getSessionRemaining(site: SiteData): number {
   if (site.currentSessionStart <= 0) return 0;
-  const elapsed = Math.floor((Date.now() - site.currentSessionStart) / 1000);
+  let totalPausedMs = site.pausedDuration ?? 0;
+  if ((site.pausedAt ?? 0) > 0) {
+    totalPausedMs += Date.now() - site.pausedAt;
+  }
+  const elapsed = Math.floor((Date.now() - site.currentSessionStart - totalPausedMs) / 1000);
   return site.currentSessionSeconds - elapsed;
 }
 
@@ -54,15 +58,18 @@ function getBarState(remaining: number, total: number): string {
 function updateBarDisplay(): void {
   if (!barElement) return;
 
+  const isPaused = (cachedSiteData.pausedAt ?? 0) > 0;
   const remaining = getSessionRemaining(cachedSiteData);
-  const state = getBarState(remaining, cachedSiteData.currentSessionSeconds);
+  const state = isPaused ? "paused" : getBarState(remaining, cachedSiteData.currentSessionSeconds);
 
   barElement.setAttribute("data-state", state);
 
   const timeSpan = barElement.querySelector("#antiprocra-bar-time");
   const statsSpan = barElement.querySelector("#antiprocra-bar-stats");
   if (timeSpan) {
-    if (state === "expired") {
+    if (isPaused) {
+      timeSpan.textContent = `Session: ${formatCountdown(Math.max(0, remaining))} (Paused)`;
+    } else if (state === "expired") {
       const overstay = Math.abs(remaining);
       timeSpan.textContent = `Overstayed your welcome by ${formatCountdown(overstay)}`;
     } else {
